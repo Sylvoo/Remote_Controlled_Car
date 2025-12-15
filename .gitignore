@@ -1,0 +1,49 @@
+####################################
+# ESP-IDF / CMake build artifacts
+####################################
+build/
+controller/build/
+
+####################################
+# ESP-IDF generated config files
+####################################
+sdkconfig
+sdkconfig.old
+sdkconfig.ci*
+sdkconfig.ci.*
+sdkconfig.defaults.old
+
+####################################
+# ESP-IDF tools & caches
+####################################
+managed_components/
+dependencies.lock
+
+####################################
+# Python
+####################################
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+####################################
+# IDEs / Editors
+####################################
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+####################################
+# OS
+####################################
+.DS_Store
+Thumbs.db
+
+####################################
+# Logs
+####################################
+*.log
