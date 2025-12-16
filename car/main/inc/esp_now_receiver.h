@@ -1,5 +1,5 @@
-#ifndef ESP_NOW_SENDER_H
-#define ESP_NOW_SENDER_H
+#ifndef ESP_NOW_RECEIVER
+#define ESP_NOW_RECEIVER
 
 #include <stdint.h>
 #include "esp_err.h"
@@ -14,8 +14,8 @@ typedef struct __attribute__((packed)){
     uint32_t seq;   
 } espnow_payload_t;
 
-void espnow_send_cb(const wifi_tx_info_t *tx_info, esp_now_send_status_t status);
+void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len);
+void espnow_receiver_init(void);
 
-esp_err_t espnow_init_peer(void);
 
-#endif // ESP_NOW_SENDER_H
+#endif // ESP_NOW_RECEIVER

@@ -15,26 +15,20 @@
 #include "esp_http_client.h"
 
 
-/* === DEFINICJE Z ORYGINALNEGO KODU === */
-
 #define ESP_WIFI_SSID      "iPhone"
 #define ESP_WIFI_PASS      "123456789"
 #define ESP_MAXIMUM_RETRY  5
 
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
-#define ESP_MAXIMUM_RETRY  5
 #define THINGSPEAK_APIKEY  "PYOQZ55HNNW1TX6Q"
 
 static const char *TAG = "wifi station";
-
-/* === ZMIENNE GLOBALNE (jak w main.c) === */
 
 EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 int is_connected = 0;
 
-/* === EVENT HANDLER – 1:1 === */
 
 static void event_handler(void* arg, esp_event_base_t event_base,
                           int32_t event_id, void* event_data)
@@ -64,8 +58,6 @@ static void event_handler(void* arg, esp_event_base_t event_base,
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
     }
 }
-
-/* === WIFI INIT – 1:1 === */
 
 void wifi_init_sta(void)
 {
