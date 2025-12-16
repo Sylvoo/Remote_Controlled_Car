@@ -66,16 +66,16 @@ joystick_adc_t joystick_read()
 
     if(xy_data.err_x == ESP_OK && xy_data.err_y == ESP_OK)
     {
-        if(cali_enabled)
-        {
-            adc_cali_raw_to_voltage(cali_handle, raw_x, &xy_data.x);
-            adc_cali_raw_to_voltage(cali_handle, raw_y, &xy_data.y);
-        }
-        else
-        {
+        // if(cali_enabled)
+        // {
+        //     adc_cali_raw_to_voltage(cali_handle, raw_x, &xy_data.x);
+        //     adc_cali_raw_to_voltage(cali_handle, raw_y, &xy_data.y);
+        // }
+        // else
+        // {
             xy_data.x = raw_x;
             xy_data.y = raw_y;
-        }
+        // }
     }
     return xy_data;
 }
