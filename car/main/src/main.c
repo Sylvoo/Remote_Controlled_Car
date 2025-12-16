@@ -28,7 +28,6 @@ static const char *TAG4 = "ESP_NOW_RECEIVER";
 
 const uint8_t PEER_MAC[ESP_NOW_ETH_ALEN] = { 0x44, 0x1D, 0x64, 0xF8, 0xFE, 0x5C }; // 44:1D:64:F8:FE:5C
 
-
 void app_main(void)
 {
     //Initialize NVS

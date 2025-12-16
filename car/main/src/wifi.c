@@ -116,12 +116,12 @@ void wifi_init_sta(void)
 }
 
 
-void send_to_ThingSpeak(int tempValue, int pressureValue)
+void send_to_ThingSpeak(int xValue, int yValue)
 {
     // to operate in http client mode
     char url[256];
     sprintf(url, "http://api.thingspeak.com/update?api_key=%s&field1=%d&field2=%d",
-                THINGSPEAK_APIKEY, tempValue, pressureValue);
+                THINGSPEAK_APIKEY, xValue, yValue);
 
     esp_http_client_config_t config = {
     .url = url,
@@ -132,7 +132,7 @@ void send_to_ThingSpeak(int tempValue, int pressureValue)
     
     esp_err_t err = esp_http_client_perform(client);
     if (err == ESP_OK) {
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %"PRId64,
+        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
                 esp_http_client_get_status_code(client),
                 esp_http_client_get_content_length(client));
     } else {
