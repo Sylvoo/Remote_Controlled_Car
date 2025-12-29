@@ -17,5 +17,8 @@ typedef struct __attribute__((packed)){
 void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int data_len);
 void espnow_receiver_init(void);
 
+void espnow_receiver_store_init(void);
+bool espnow_receiver_get_latest(espnow_payload_t *out);
+
 
 #endif // ESP_NOW_RECEIVER
