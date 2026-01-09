@@ -24,7 +24,7 @@
 #include "esp_err.h"
 #include "driver/ledc.h"
 
-static const char *TAG = "Wifi station";
+// static const char *TAG = "Wifi station";
 static const char *TAG4 = "ESP_NOW_RECEIVER";
 
 const uint8_t PEER_MAC[ESP_NOW_ETH_ALEN] = { 0x44, 0x1D, 0x64, 0xF8, 0xFE, 0x5C }; // 44:1D:64:F8:FE:5C
@@ -40,6 +40,8 @@ const uint8_t PEER_MAC[ESP_NOW_ETH_ALEN] = { 0x44, 0x1D, 0x64, 0xF8, 0xFE, 0x5C 
 
 #define PWM_GPIO_A 14   // ENA
 #define PWM_GPIO_B 32   // ENB
+
+#define TOGGLE_PERIOD 250000
 
 void motor_pwm_init(void)
 {
@@ -72,6 +74,40 @@ void motor_pwm_init(void)
 #define IN3 25
 #define IN4 33
 
+#define BLINKER_LEFT    GPIO_NUM_13
+#define BLINKER_RIGHT   GPIO_NUM_12
+#define BLINKERS        ((1ULL<<BLINKER_LEFT) | (1ULL<<BLINKER_RIGHT))
+
+
+
+esp_timer_handle_t led_timer;
+volatile uint8_t blinker_left_on = 0;
+volatile uint8_t blinker_right_on = 0;
+volatile uint8_t blinker_left_high = 0;
+volatile uint8_t blinker_right_high = 0;
+
+// void gpio_toggle(gpio_num_t pinNumber)
+// {
+//     // int level = gpio_get_level(pinNumber);
+    
+// }
+
+void blinker_cb(void* arg)
+{
+    if(blinker_left_on)
+    {
+        int nextState= (blinker_left_high == 0) ? 1 : 0;
+        gpio_set_level(BLINKER_LEFT, nextState);
+        blinker_left_high = nextState;
+    }
+    if(blinker_right_on)
+    {
+        int nextState = (blinker_right_high == 0) ? 1 : 0;
+        gpio_set_level(BLINKER_RIGHT, nextState);
+        blinker_right_high = nextState;
+    }
+}
+
 void motor_gpio_init(void)
 {
     gpio_config_t io = {
@@ -81,6 +117,53 @@ void motor_gpio_init(void)
             (1ULL<<IN3) | (1ULL<<IN4)
     };
     gpio_config(&io);
+}
+
+void blinkers_gpio_init(void)
+{
+    gpio_config_t blinkers_io = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = BLINKERS
+    };
+    gpio_config(&blinkers_io);
+
+    const esp_timer_create_args_t toggle_args = 
+    {
+        .callback = &blinker_cb,
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&toggle_args, &led_timer));
+}
+
+void blink_start(uint64_t us, uint8_t num)
+{
+    gpio_set_level(BLINKER_LEFT, 0);
+    gpio_set_level(BLINKER_RIGHT, 0);
+    blinker_right_on = false;
+    blinker_left_on = false;
+    switch(num)
+    {
+        case 1:
+            blinker_right_on = false;
+            blinker_left_on = true;
+            break;
+        case 2:
+            blinker_left_on = false;
+            blinker_right_on = true;
+            break;
+        default:
+            break;
+    }
+    esp_timer_stop(led_timer);
+    ESP_ERROR_CHECK(esp_timer_start_periodic(led_timer, us));
+}
+
+void blink_stop(void)
+{
+    blinker_left_on = false;
+    blinker_right_on = false;
+    esp_timer_stop(led_timer);
+    gpio_set_level(BLINKER_LEFT, 0);
+    gpio_set_level(BLINKER_RIGHT, 0);
 }
 
 void motor_forward(void)
@@ -146,7 +229,7 @@ void motor_set_speed(uint8_t speed) // 0–255
 //     uint32_t seq;   
 // } espnow_payload_t;
 
-static volatile uint8_t action = 0;
+
 static volatile uint8_t speed = 0;
 bool is_beetween(int curr, int num, int num2)
 {
@@ -161,12 +244,12 @@ uint8_t calcSpeed(int speed)
 
 void drive_actions(void)
 {
-    action = 0;
+
+    static volatile uint8_t action = 0;
+    static volatile uint8_t prev_action = 255;
     espnow_payload_t current;
 
     if (espnow_receiver_get_latest(&current)) {
-        // motor_set_speed(abs((current.y_v) - 120));  // 120 = 255 - (255-180) +/-
-        // motor_set_speed(255);
         
         if(is_beetween(current.y_v, 0, 120) && is_beetween(current.x_v, 120, 190))
         {
@@ -180,12 +263,12 @@ void drive_actions(void)
         }
         if(is_beetween(current.x_v, 0, 120) && is_beetween(current.y_v, 160, 190))
         {
-            action = 3;
+            action = 4;
             motor_set_speed(180);
         }
         if(is_beetween(current.x_v, 240, 255) && is_beetween(current.y_v, 170, 215))
         {
-            action = 4;
+            action = 3;
             motor_set_speed(180);
         }
         if(is_beetween(current.y_v, 170, 200) && is_beetween(current.x_v, 170, 200))
@@ -194,28 +277,41 @@ void drive_actions(void)
             motor_set_speed(0);
         } 
     }
-    switch(action)
+    
+    if(action != prev_action)
     {
-        case 0:
-            motor_stop();
-        break;
-        case 1:
-            motor_forward();
-        break;
-        case 2:
-            motor_backward();
-        break;
-        case 3:
-            motor_left();
-        break;
-        case 4:
-            motor_right();
-        break;
-        default:
-            ESP_LOGE(TAG4, "Something went wrong with, switch{case} actions");
-        break;
+        switch(action)
+        {
+            case 0:
+                motor_stop();
+                blink_stop();
+            break;
+            case 1:
+                motor_forward();
+                blink_stop();
+            break;
+            case 2:
+                motor_backward();
+                blink_stop();
+            break;
+            case 3:
+                motor_left();
+                blink_start(TOGGLE_PERIOD, 1);
+            break;
+            case 4:
+                motor_right();
+                blink_start(TOGGLE_PERIOD, 2);
+            break;
+            default:
+                ESP_LOGE(TAG4, "Something went wrong with, switch{case} actions");
+            break;
+        }
+        prev_action = action;
     }
 }
+
+
+
 
 void app_main(void)
 {
@@ -234,8 +330,9 @@ void app_main(void)
     espnow_receiver_store_init();
     espnow_receiver_init();
     motor_gpio_init();
+    blinkers_gpio_init();
     motor_pwm_init();
-
+    
    
     while(1)
     {

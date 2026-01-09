@@ -42,14 +42,14 @@ void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, i
     espnow_payload_t p;
     const uint8_t *src = recv_info->src_addr;
 
-    ESP_LOGI(TAG4, "RX from %02X:%02X:%02X:%02X:%02X:%02X len=%d",
-             src[0], src[1], src[2], src[3], src[4], src[5], data_len);
+    // ESP_LOGI(TAG4, "RX from %02X:%02X:%02X:%02X:%02X:%02X len=%d",
+    //          src[0], src[1], src[2], src[3], src[4], src[5], data_len);
 
     if (data_len == sizeof(espnow_payload_t))
     {
         memcpy(&p, data, sizeof(p));
-        ESP_LOGI(TAG4, "payload: x=%d y=%d btn=%u seq=%d",
-                 p.x_v, p.y_v, p.btn, p.seq);
+        // ESP_LOGI(TAG4, "payload: x=%d y=%d btn=%u seq=%d",
+        //          p.x_v, p.y_v, p.btn, p.seq);
 
         if (g_latest_mtx && xSemaphoreTake(g_latest_mtx, 0) == pdTRUE) {
         g_latest_payload = p;
