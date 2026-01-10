@@ -46,12 +46,6 @@ static const char *TAG2 = "Remote Controller";
 static const char *TAG3 = "ADC";
 static const char *TAG4 = "ESP_NOW_SENDER";
 
-volatile int joystickButtonState = 0;
-const gpio_num_t joystick_SW = GPIO_NUM_25;
-const gpio_num_t xValuePin = GPIO_NUM_34;
-const gpio_num_t yValuePin = GPIO_NUM_35;
-uint8_t x_ValueNormalized = 0;
-uint8_t y_ValueNormalized = 0;
 
 static const uint8_t PEER_MAC[ESP_NOW_ETH_ALEN] = { 0x44, 0x1D, 0x64, 0xF8, 0xFE, 0x5C }; // 44:1D:64:F8:FE:5C
 static uint32_t g_seq = 0;
@@ -66,30 +60,6 @@ uint8_t conversion(int value)
     uint8_t normalized = (uint8_t)round(normalize);
     return normalized;
 }
-
-// gpio_isr_handle_t joystickHandler = NULL;
-
-void joystickButton_cb(void* arg)
-{
-    joystickButtonState = !joystickButtonState;
-}
-
-void joystickButton_init(void)
-{
-    const gpio_config_t jButton_io = {
-        .intr_type = GPIO_INTR_ANYEDGE,
-        .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
-        .pin_bit_mask = (1ULL<<joystick_SW),
-    };
-    gpio_config(&jButton_io);
-
-    ESP_ERROR_CHECK(gpio_install_isr_service(0));
-
-    gpio_isr_handler_add(joystick_SW, joystickButton_cb, NULL);
-    gpio_intr_enable(joystick_SW);
-}
-
 
 
 void app_main(void)

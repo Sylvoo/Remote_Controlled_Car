@@ -7,12 +7,42 @@
 #include "hal/adc_types.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
+#include "driver/gpio.h"
 
 static const char *TAG3 = "ADC";
+
+const gpio_num_t joystick_SW = GPIO_NUM_25;
+const gpio_num_t xValuePin = GPIO_NUM_34;
+const gpio_num_t yValuePin = GPIO_NUM_35;
+
+uint8_t x_ValueNormalized = 0;
+uint8_t y_ValueNormalized = 0;
+volatile int joystickButtonState = 0;
 
 adc_oneshot_unit_handle_t adc1_handle;
 adc_cali_handle_t cali_handle = NULL;
 bool cali_enabled = false;
+
+void joystickButton_cb(void* arg)
+{
+    joystickButtonState = !joystickButtonState;
+}
+
+void joystickButton_init(void)
+{
+    const gpio_config_t jButton_io = {
+        .intr_type = GPIO_INTR_ANYEDGE,
+        .mode = GPIO_MODE_INPUT,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pin_bit_mask = (1ULL<<joystick_SW),
+    };
+    gpio_config(&jButton_io);
+
+    ESP_ERROR_CHECK(gpio_install_isr_service(0));
+
+    gpio_isr_handler_add(joystick_SW, joystickButton_cb, NULL);
+    gpio_intr_enable(joystick_SW);
+}
 
 void adc_calibration_init(adc_unit_t unit, adc_atten_t atten )
 {

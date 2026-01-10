@@ -21,13 +21,18 @@ typedef struct {
     esp_err_t err_y;
 } joystick_adc_t;
 
-/* Inicjalizacja ADC + kanałów + (opcjonalnie) kalibracji */
+extern uint8_t x_ValueNormalized;
+extern uint8_t y_ValueNormalized;
+extern volatile int joystickButtonState;
+
+void joystickButton_cb(void* arg);
+
+void joystickButton_init(void);
+
 void adc_joystick_init(void);
 
-/* Zwolnienie zasobów ADC */
 void adc_deinit(void);
 
-/* Odczyt joysticka (raw lub mV zależnie od cali_enabled) */
 joystick_adc_t joystick_read(void);
 
 #ifdef __cplusplus
