@@ -11,6 +11,7 @@ bool blinker_right_on = false;
 bool blinker_left_high = false;
 bool blinker_right_high = false;
 
+#define BLINKER_BUZZER GPIO_NUM_18
 esp_timer_handle_t led_timer = NULL;
 
 void blinker_cb(void* arg)
@@ -19,12 +20,14 @@ void blinker_cb(void* arg)
     {
         int nextState= (blinker_left_high == 0) ? 1 : 0;
         gpio_set_level(BLINKER_LEFT, nextState);
+        gpio_set_level(BLINKER_BUZZER, nextState);
         blinker_left_high = nextState;
     }
     if(blinker_right_on)
     {
         int nextState = (blinker_right_high == 0) ? 1 : 0;
         gpio_set_level(BLINKER_RIGHT, nextState);
+        gpio_set_level(BLINKER_BUZZER, nextState);
         blinker_right_high = nextState;
     }
 }
@@ -33,7 +36,7 @@ void blinkers_gpio_init(void)
 {
     gpio_config_t blinkers_io = {
         .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = BLINKERS
+        .pin_bit_mask = BLINKERS | (1ULL<<BLINKER_BUZZER),
     };
     gpio_config(&blinkers_io);
 
@@ -48,6 +51,7 @@ void blink_start(uint64_t us, uint8_t num)
 {
     gpio_set_level(BLINKER_LEFT, 0);
     gpio_set_level(BLINKER_RIGHT, 0);
+    gpio_set_level(BLINKER_BUZZER, 0);
     blinker_right_on = false;
     blinker_left_on = false;
     switch(num)
@@ -74,4 +78,5 @@ void blink_stop(void)
     esp_timer_stop(led_timer);
     gpio_set_level(BLINKER_LEFT, 0);
     gpio_set_level(BLINKER_RIGHT, 0);
+    gpio_set_level(BLINKER_BUZZER, 0);
 }

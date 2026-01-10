@@ -113,6 +113,30 @@ uint8_t calcSpeed(int speed)
     else return 255;
 }
 
+#define HONK GPIO_NUM_5
+volatile uint8_t honk_on = 0; 
+
+void honk_action(void)
+{
+    if(honk_on)
+    {
+        gpio_set_level(HONK, 1);
+    }
+    else
+    {
+        gpio_set_level(HONK, 0);
+    }
+}
+
+void gpio_honk_init()
+{
+    gpio_config_t honk_io = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = (1<<HONK) 
+    };
+    gpio_config(&honk_io);
+}
+
 void drive_actions(void)
 {
     static volatile uint8_t action = 0;
@@ -146,6 +170,9 @@ void drive_actions(void)
             action = 0;
             motor_set_speed(0);
         } 
+        honk_on = current.btn;
+        ESP_LOGI(TAG4, "BTN: %d  HONK_ON: %d", current.btn, honk_on);
+        honk_action();
     }
     
     if(action != prev_action)
