@@ -32,6 +32,38 @@
 
 const uint8_t PEER_MAC[ESP_NOW_ETH_ALEN] = { 0x44, 0x1D, 0x64, 0xF8, 0xFE, 0x5C }; // 44:1D:64:F8:FE:5C
 
+#define HONK GPIO_NUM_5
+
+void honk_cb(void* arg)
+{
+    if(honk_on)
+    {
+        gpio_set_level(HONK, 1);
+    }
+}
+
+void gpio_honk_init()
+{
+    gpio_config_t honk_io = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = (1<<HONK) 
+    };
+    gpio_config(&honk_io);
+
+    const esp_timer_create_args_t honk_args = 
+    {
+        .callback = &honk_cb,
+    };
+    ESP_ERROR_CHECK(esp_timer_create(&honk_args, &led_timer_honk));
+}
+
+void honk_start(uint64_t us)
+{
+    honk_on = 1;
+    esp_timer_stop(led_timer_honk);
+    ESP_ERROR_CHECK(esp_timer_start_periodic(led_timer_honk, us));
+}
+
 
 
 void app_main(void)
