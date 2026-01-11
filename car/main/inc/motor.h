@@ -24,6 +24,16 @@ void motor_pwm_init(void);
 #define IN3 25
 #define IN4 33
 
+typedef enum 
+{
+    CAR_STOP = 0,
+    CAR_FORWARD,
+    CAR_BACKWARD,
+    CAR_LEFT,
+    CAR_RIGHT,
+} actions_t;
+
+
 void motor_gpio_init(void);
 
 void motor_forward(void);
@@ -49,6 +59,6 @@ void honk_action(void);
 
 void gpio_honk_init();
 
-void drive_actions(void);
+actions_t drive_actions(void);
 
 #endif // MOTOR_H

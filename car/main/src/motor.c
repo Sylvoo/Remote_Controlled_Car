@@ -137,37 +137,46 @@ void gpio_honk_init()
     gpio_config(&honk_io);
 }
 
-void drive_actions(void)
+// typedef enum 
+// {
+//     CAR_STOP = 0,
+//     CAR_FORWARD,
+//     CAR_BACKWARD,
+//     CAR_LEFT,
+//     CAR_RIGHT,
+// } actions_t;
+
+actions_t drive_actions(void)
 {
-    static volatile uint8_t action = 0;
-    static volatile uint8_t prev_action = 255;
+    static volatile actions_t action = CAR_STOP;
+    static volatile actions_t prev_action = CAR_STOP;
     espnow_payload_t current;
 
     if (espnow_receiver_get_latest(&current)) {
         
         if(is_beetween(current.y_v, 0, 120) && is_beetween(current.x_v, 120, 190))
         {
-            action = 1;
+            action = CAR_FORWARD;
             motor_set_speed(200);
         }
         if(is_beetween(current.y_v, 240, 255) && is_beetween(current.x_v, 180, 215))
         {
-            action = 2;
+            action = CAR_BACKWARD;
             motor_set_speed(200);
         }
         if(is_beetween(current.x_v, 0, 120) && is_beetween(current.y_v, 160, 190))
         {
-            action = 4;
+            action = CAR_RIGHT;
             motor_set_speed(180);
         }
         if(is_beetween(current.x_v, 240, 255) && is_beetween(current.y_v, 170, 215))
         {
-            action = 3;
+            action = CAR_LEFT;
             motor_set_speed(180);
         }
         if(is_beetween(current.y_v, 170, 200) && is_beetween(current.x_v, 170, 200))
         {
-            action = 0;
+            action = CAR_STOP;
             motor_set_speed(0);
         } 
         honk_on = current.btn;
@@ -179,23 +188,23 @@ void drive_actions(void)
     {
         switch(action)
         {
-            case 0:
+            case CAR_STOP:
                 motor_stop();
                 blink_stop();
             break;
-            case 1:
+            case CAR_FORWARD:
                 motor_forward();
                 blink_stop();
             break;
-            case 2:
+            case CAR_BACKWARD:
                 motor_backward();
                 blink_stop();
             break;
-            case 3:
+            case CAR_LEFT:
                 motor_left();
                 blink_start(TOGGLE_PERIOD, 1);
             break;
-            case 4:
+            case CAR_RIGHT:
                 motor_right();
                 blink_start(TOGGLE_PERIOD, 2);
             break;
@@ -205,4 +214,6 @@ void drive_actions(void)
         }
         prev_action = action;
     }
+
+    return action;
 }
